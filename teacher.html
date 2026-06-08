@@ -203,6 +203,12 @@ if (filterLesson !== "all" && data.lessonName !== filterLesson) return;
       <h3>${data.userName || "名前なし"}</h3>
       <div class="meta">${data.userEmail || ""}</div>
 
+      <div class="meta">
+  ${data.grade || ""}　
+  ${data.className || ""}　
+  ${data.lessonName || ""}
+</div>
+
       <h4>① Today's Reflection</h4>
       <p>${data.reflection || ""}</p>
 
