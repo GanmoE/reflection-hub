@@ -10,10 +10,20 @@ h1 {
   color: navy;
 }
 
+.section {
+  margin-bottom: 25px;
+}
+
 textarea {
   width: 100%;
-  height: 150px;
+  height: 120px;
   font-size: 16px;
+  padding: 10px;
+}
+
+select {
+  font-size: 16px;
+  padding: 8px;
 }
 
 button {
@@ -21,14 +31,45 @@ button {
   padding: 10px;
   cursor: pointer;
 }
+
+button:hover {
+  background-color: skyblue;
+}
 </style>
 
 <h1>📝 Reflection Hub</h1>
 
-<p>今日の振り返りを書いてください。</p>
+<p>今日の授業を思い出しながら、何も見ないで振り返ろう。</p>
 
-<textarea placeholder="今日学んだこと、できるようになったこと、次に頑張りたいことを書こう"></textarea>
+<div class="section">
+  <h3>① Today's Reflection</h3>
+  <p>今日学んだこと・理解できたこと・気づいたこと</p>
+  <textarea placeholder="例：今日は比較級の使い方を学んだ。more を使う形と -er をつける形の違いが少しわかった。"></textarea>
+</div>
 
-<br><br>
+<div class="section">
+  <h3>② Questions & Expressions</h3>
+  <p>疑問に思ったこと・Small Talkで言いたかったけど言えなかった表現</p>
+  <textarea placeholder="例：「雰囲気が崩れる」って英語でどう言えばいいかわからなかった。"></textarea>
+</div>
+
+<div class="section">
+  <h3>③ Message to Teacher</h3>
+  <p>先生に伝えたいこと・聞きたいこと</p>
+  <textarea placeholder="例：次回もう一度、関係詞の説明を聞きたいです。"></textarea>
+</div>
+
+<div class="section">
+  <h3>⭐ Self Evaluation</h3>
+  <p>今日の理解度を選んでください。</p>
+
+  <select>
+    <option>5 😀 よく理解できた</option>
+    <option>4 🙂 だいたい理解できた</option>
+    <option>3 😐 ふつう</option>
+    <option>2 😕 少し難しかった</option>
+    <option>1 😵 かなり難しかった</option>
+  </select>
+</div>
 
 <button>提出する</button>
