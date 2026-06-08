@@ -45,6 +45,38 @@ button:hover {
 <p>今日の授業を思い出しながら、何も見ないで振り返ろう。</p>
 
 <div class="section">
+  <h3>🏫 Class Information</h3>
+
+  <p>学年</p>
+  <select id="grade">
+    <option>1年</option>
+    <option>2年</option>
+    <option>3年</option>
+  </select>
+
+  <p>クラス</p>
+  <select id="className">
+    <option>1組</option>
+    <option>2組</option>
+    <option>3組</option>
+    <option>4組</option>
+    <option>5組</option>
+    <option>6組</option>
+    <option>7組</option>
+    <option>8組</option>
+  </select>
+
+  <p>授業名</p>
+  <select id="lessonName">
+    <option>英語コミュニケーションⅠ</option>
+    <option>英語コミュニケーションⅡ</option>
+    <option>英語コミュニケーションⅢ</option>
+    <option>論理・表現Ⅰ</option>
+    <option>論理・表現Ⅱ</option>
+    <option>論理・表現Ⅲ</option>
+  </select>
+</div>
+<div class="section">
   <h3>① Today's Reflection</h3>
   <p>今日学んだこと・理解できたこと・気づいたこと</p>
   <textarea id="reflection"
@@ -138,6 +170,15 @@ onAuthStateChanged(auth, (user) => {
 
   document.getElementById("submitBtn").addEventListener("click", async () => {
 
+  const grade =
+  document.getElementById("grade").value;
+
+const className =
+  document.getElementById("className").value;
+
+const lessonName =
+  document.getElementById("lessonName").value;
+    
   const reflection =
     document.getElementById("reflection").value;
 
@@ -158,6 +199,11 @@ onAuthStateChanged(auth, (user) => {
   userName: currentUser ? currentUser.displayName : "未ログイン",
   userEmail: currentUser ? currentUser.email : "未ログイン",
   userId: currentUser ? currentUser.uid : "未ログイン",
+
+grade: grade,
+className: className,
+lessonName: lessonName,
+       
   reflection: reflection,
   question: question,
   message: message,
