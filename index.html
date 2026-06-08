@@ -44,26 +44,29 @@ button:hover {
 <div class="section">
   <h3>① Today's Reflection</h3>
   <p>今日学んだこと・理解できたこと・気づいたこと</p>
-  <textarea placeholder="例：今日は比較級の使い方を学んだ。more を使う形と -er をつける形の違いが少しわかった。"></textarea>
+  <textarea id="reflection"
+    placeholder="例：今日は比較級の使い方を学んだ。more を使う形と -er をつける形の違いが少しわかった。"></textarea>
 </div>
 
 <div class="section">
   <h3>② Questions & Expressions</h3>
   <p>疑問に思ったこと・Small Talkで言いたかったけど言えなかった表現</p>
-  <textarea placeholder="例：「雰囲気が崩れる」って英語でどう言えばいいかわからなかった。"></textarea>
+  <textarea id="question"
+    placeholder="例：「雰囲気が崩れる」って英語でどう言えばいいかわからなかった。"></textarea>
 </div>
 
 <div class="section">
   <h3>③ Message to Teacher</h3>
   <p>先生に伝えたいこと・聞きたいこと</p>
-  <textarea placeholder="例：次回もう一度、関係詞の説明を聞きたいです。"></textarea>
+  <textarea id="message"
+    placeholder="例：次回もう一度、関係詞の説明を聞きたいです。"></textarea>
 </div>
 
 <div class="section">
   <h3>⭐ Self Evaluation</h3>
   <p>今日の理解度を選んでください。</p>
 
-  <select>
+  <select id="evaluation">
     <option>5 😀 よく理解できた</option>
     <option>4 🙂 だいたい理解できた</option>
     <option>3 😐 ふつう</option>
@@ -72,4 +75,70 @@ button:hover {
   </select>
 </div>
 
-<button>提出する</button>
+<button id="submitBtn">提出する</button>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
+  import {
+  getFirestore,
+  collection,
+  addDoc
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0v6j94bU_51gk3UxkD9XJevhJ128Xtzo",
+    authDomain: "ganmo-reflection-hub.firebaseapp.com",
+    projectId: "ganmo-reflection-hub",
+    storageBucket: "ganmo-reflection-hub.firebasestorage.app",
+    messagingSenderId: "308447845168",
+    appId: "1:308447845168:web:f97ffa59996d78d29406f5"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  document.getElementById("submitBtn").addEventListener("click", async () => {
+
+  const reflection =
+    document.getElementById("reflection").value;
+
+  const question =
+    document.getElementById("question").value;
+
+  const message =
+    document.getElementById("message").value;
+
+  const evaluation =
+    document.getElementById("evaluation").value;
+
+  try {
+
+    await addDoc(
+      collection(db, "reflections"),
+      {
+        reflection: reflection,
+        question: question,
+        message: message,
+        evaluation: evaluation,
+        createdAt: new Date()
+      }
+    );
+
+    alert("提出完了！");
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert("保存に失敗しました");
+
+  }
+
+});
+</script>
