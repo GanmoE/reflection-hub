@@ -98,13 +98,21 @@ onAuthStateChanged(auth, (user) => {
 
   if (!teacherEmails.includes(user.email)) {
 
-    document.body.innerHTML = `
-      <h1>⛔ 閲覧権限がありません</h1>
-      <p>このページは教員専用です。</p>
-    `;
+  document.body.innerHTML = `
+    <h1>⛔ 閲覧権限がありません</h1>
 
-    return;
-  }
+    <p>
+      このページは教員専用です。<br>
+      生徒の方は振り返りページをご利用ください。
+    </p>
+
+    <button onclick="window.location.href='index.html'">
+      振り返りページへ戻る
+    </button>
+  `;
+
+  return;
+}
 
   loadReflections();
 
