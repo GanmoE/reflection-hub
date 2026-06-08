@@ -80,6 +80,9 @@ button:hover {
   <br><br>
 
   <button id="filterBtn">絞り込む</button>
+  &nbsp;
+  <button id="resetFilterBtn">リセット</button>
+  
 </div>
 <h2>提出された振り返り</h2>
 
@@ -131,6 +134,20 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 document.getElementById("filterBtn").addEventListener("click", () => {
   loadReflections();
 });  
+
+document.getElementById("resetFilterBtn").addEventListener("click", () => {
+
+  document.getElementById("filterDate").value = "";
+
+  document.getElementById("filterGrade").value = "all";
+
+  document.getElementById("filterClass").value = "all";
+
+  document.getElementById("filterLesson").value = "all";
+
+  loadReflections();
+
+});
   
 onAuthStateChanged(auth, (user) => {
   if (user) {
