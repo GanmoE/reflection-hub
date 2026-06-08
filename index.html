@@ -38,6 +38,9 @@ button:hover {
 </style>
 
 <h1>📝 Reflection Hub</h1>
+<button id="loginBtn">Googleでログイン</button>
+<button id="logoutBtn">ログアウト</button>
+<p id="userInfo">ログインしていません</p>
 
 <p>今日の授業を思い出しながら、何も見ないで振り返ろう。</p>
 
@@ -86,6 +89,13 @@ button:hover {
   collection,
   addDoc
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
   // TODO: Add SDKs for Firebase products that you want to use
   // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -102,6 +112,29 @@ button:hover {
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+  await signInWithPopup(auth, provider);
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await signOut(auth);
+});
+
+let currentUser = null;
+
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+
+  if (user) {
+    document.getElementById("userInfo").innerHTML =
+      `${user.displayName} さんでログイン中`;
+  } else {
+    document.getElementById("userInfo").innerHTML =
+      "ログインしていません";
+  }
+});
 
   document.getElementById("submitBtn").addEventListener("click", async () => {
 
@@ -121,13 +154,16 @@ button:hover {
 
     await addDoc(
       collection(db, "reflections"),
-      {
-        reflection: reflection,
-        question: question,
-        message: message,
-        evaluation: evaluation,
-        createdAt: new Date()
-      }
+     {
+  userName: currentUser ? currentUser.displayName : "未ログイン",
+  userEmail: currentUser ? currentUser.email : "未ログイン",
+  userId: currentUser ? currentUser.uid : "未ログイン",
+  reflection: reflection,
+  question: question,
+  message: message,
+  evaluation: evaluation,
+  createdAt: new Date()
+}
     );
 
     alert("提出完了！");
