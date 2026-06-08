@@ -42,6 +42,9 @@ button:hover {
 <div class="card">
   <h3>🔍 絞り込み</h3>
 
+  <p>日付</p>
+<input type="date" id="filterDate">
+
   <p>学年</p>
   <select id="filterGrade">
     <option value="all">すべて</option>
@@ -188,6 +191,14 @@ const filterGrade = document.getElementById("filterGrade").value;
 const filterClass = document.getElementById("filterClass").value;
 const filterLesson = document.getElementById("filterLesson").value;
 
+const filterDate = document.getElementById("filterDate").value;
+    if (filterDate !== "") {
+  const submittedDate =
+  data.createdAt.toDate().toLocaleDateString("sv-SE");
+
+  if (submittedDate !== filterDate) return;
+}
+    
 if (filterGrade !== "all" && data.grade !== filterGrade) return;
 if (filterClass !== "all" && data.className !== filterClass) return;
 if (filterLesson !== "all" && data.lessonName !== filterLesson) return;
