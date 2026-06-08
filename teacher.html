@@ -1,0 +1,148 @@
+<style>
+body {
+  font-family: Arial;
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  color: navy;
+}
+
+.card {
+  border: 1px solid lightgray;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.meta {
+  color: gray;
+  font-size: 14px;
+}
+
+button {
+  background-color: lightblue;
+  padding: 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: skyblue;
+}
+</style>
+
+<h1>👨‍🏫 Teacher Dashboard</h1>
+
+<button id="loginBtn">Googleでログイン</button>
+<button id="logoutBtn">ログアウト</button>
+<p id="userInfo">ログインしていません</p>
+
+<h2>提出された振り返り</h2>
+
+<div id="reflectionList">
+  読み込み中...
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  orderBy,
+  query
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC0v6j94bU_51gk3UxkD9XJevhJ128Xtzo",
+  authDomain: "ganmo-reflection-hub.firebaseapp.com",
+  projectId: "ganmo-reflection-hub",
+  storageBucket: "ganmo-reflection-hub.firebasestorage.app",
+  messagingSenderId: "308447845168",
+  appId: "1:308447845168:web:f97ffa59996d78d29406f5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  await signInWithPopup(auth, provider);
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await signOut(auth);
+});
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById("userInfo").innerHTML =
+      `${user.displayName} さんでログイン中`;
+
+    loadReflections();
+
+  } else {
+    document.getElementById("userInfo").innerHTML =
+      "ログインしていません";
+
+    document.getElementById("reflectionList").innerHTML =
+      "ログインすると提出一覧を表示します。";
+  }
+});
+
+async function loadReflections() {
+  const reflectionList = document.getElementById("reflectionList");
+  reflectionList.innerHTML = "読み込み中...";
+
+  const q = query(
+    collection(db, "reflections"),
+    orderBy("createdAt", "desc")
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  reflectionList.innerHTML = "";
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="meta">
+        ${data.createdAt ? data.createdAt.toDate().toLocaleString() : ""}
+      </div>
+
+      <h3>${data.userName || "名前なし"}</h3>
+      <div class="meta">${data.userEmail || ""}</div>
+
+      <h4>① Today's Reflection</h4>
+      <p>${data.reflection || ""}</p>
+
+      <h4>② Questions & Expressions</h4>
+      <p>${data.question || ""}</p>
+
+      <h4>③ Message to Teacher</h4>
+      <p>${data.message || ""}</p>
+
+      <h4>⭐ Self Evaluation</h4>
+      <p>${data.evaluation || ""}</p>
+    `;
+
+    reflectionList.appendChild(card);
+  });
+}
+</script>
