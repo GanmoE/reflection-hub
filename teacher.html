@@ -39,6 +39,45 @@ button:hover {
 <button id="logoutBtn">ログアウト</button>
 <p id="userInfo">ログインしていません</p>
 
+<div class="card">
+  <h3>🔍 絞り込み</h3>
+
+  <p>学年</p>
+  <select id="filterGrade">
+    <option value="all">すべて</option>
+    <option>1年</option>
+    <option>2年</option>
+    <option>3年</option>
+  </select>
+
+  <p>クラス</p>
+  <select id="filterClass">
+    <option value="all">すべて</option>
+    <option>1組</option>
+    <option>2組</option>
+    <option>3組</option>
+    <option>4組</option>
+    <option>5組</option>
+    <option>6組</option>
+    <option>7組</option>
+    <option>8組</option>
+  </select>
+
+  <p>授業名</p>
+  <select id="filterLesson">
+    <option value="all">すべて</option>
+    <option>英語コミュニケーションⅠ</option>
+    <option>英語コミュニケーションⅡ</option>
+    <option>英語コミュニケーションⅢ</option>
+    <option>論理・表現Ⅰ</option>
+    <option>論理・表現Ⅱ</option>
+    <option>論理・表現Ⅲ</option>
+  </select>
+
+  <br><br>
+
+  <button id="filterBtn">絞り込む</button>
+</div>
 <h2>提出された振り返り</h2>
 
 <div id="reflectionList">
@@ -86,6 +125,10 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   await signOut(auth);
 });
 
+document.getElementById("filterBtn").addEventListener("click", () => {
+  loadReflections();
+});  
+  
 onAuthStateChanged(auth, (user) => {
   if (user) {
 
@@ -141,6 +184,14 @@ async function loadReflections() {
   querySnapshot.forEach((doc) => {
     const data = doc.data();
 
+const filterGrade = document.getElementById("filterGrade").value;
+const filterClass = document.getElementById("filterClass").value;
+const filterLesson = document.getElementById("filterLesson").value;
+
+if (filterGrade !== "all" && data.grade !== filterGrade) return;
+if (filterClass !== "all" && data.className !== filterClass) return;
+if (filterLesson !== "all" && data.lessonName !== filterLesson) return;
+    
     const card = document.createElement("div");
     card.className = "card";
 
