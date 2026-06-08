@@ -88,12 +88,27 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    document.getElementById("userInfo").innerHTML =
-      `${user.displayName} さんでログイン中`;
 
-    loadReflections();
+  document.getElementById("userInfo").innerHTML =
+    `${user.displayName} さんでログイン中`;
 
-  } else {
+  const teacherEmails = [
+    "yuutaka04@gmail.com"
+  ];
+
+  if (!teacherEmails.includes(user.email)) {
+
+    document.body.innerHTML = `
+      <h1>⛔ 閲覧権限がありません</h1>
+      <p>このページは教員専用です。</p>
+    `;
+
+    return;
+  }
+
+  loadReflections();
+
+} else {
     document.getElementById("userInfo").innerHTML =
       "ログインしていません";
 
