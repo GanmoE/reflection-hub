@@ -135,6 +135,13 @@ th {
   style="border:1px solid lightgray;"
 ></canvas>
 
+<h2>頻出単語ランキング</h2>
+
+<div id="wordRanking"
+     class="card">
+  まだ生成されていません
+</div>
+
 <h2>提出された振り返り</h2>
 
 <table>
@@ -572,5 +579,19 @@ function generateWordCloud() {
 
   });
 
+let rankingHtml = "<ol>";
+
+sortedWords.slice(0, 20).forEach(([word, count]) => {
+
+  rankingHtml +=
+    `<li>${word} (${count}回)</li>`;
+
+});
+
+rankingHtml += "</ol>";
+
+document.getElementById("wordRanking")
+.innerHTML = rankingHtml;
+  
 }  
 </script>
