@@ -156,7 +156,9 @@ button:hover {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+createUserWithEmailAndPassword  
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
   // TODO: Add SDKs for Firebase products that you want to use
   // https://firebase.google.com/docs/web/setup#available-libraries
@@ -180,6 +182,20 @@ const provider = new GoogleAuthProvider();
   await signInWithPopup(auth, provider);
 });
 
+document.getElementById("emailLoginBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  await signInWithEmailAndPassword(auth, email, password);
+});
+
+document.getElementById("signupBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  await createUserWithEmailAndPassword(auth, email, password);
+});
+  
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   await signOut(auth);
 });
