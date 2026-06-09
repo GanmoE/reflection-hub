@@ -149,6 +149,61 @@ th {
   </table>
 </div>
 
+<div class="card">
+  <h2>📊 提出状況マトリクス</h2>
+  <p>年度・学年・クラス・授業を選択し、該当生徒の提出日を確認します。</p>
+
+  <p>年度</p>
+  <select id="matrixSchoolYear">
+    <option value="2026">2026</option>
+  </select>
+
+  <p>学年</p>
+  <select id="matrixGrade">
+    <option value="all">すべて</option>
+    <option>1年</option>
+    <option>2年</option>
+    <option>3年</option>
+  </select>
+
+  <p>クラス</p>
+  <select id="matrixClass">
+    <option value="all">すべて</option>
+    <option>1組</option>
+    <option>2組</option>
+    <option>3組</option>
+    <option>4組</option>
+    <option>5組</option>
+    <option>6組</option>
+    <option>7組</option>
+    <option>8組</option>
+  </select>
+
+  <p>授業名</p>
+  <select id="matrixLesson">
+    <option value="all">すべて</option>
+    <option>英語コミュニケーションⅠ</option>
+    <option>英語コミュニケーションⅡ</option>
+    <option>英語コミュニケーションⅢ</option>
+    <option>論理・表現Ⅰ</option>
+    <option>論理・表現Ⅱ</option>
+    <option>論理・表現Ⅲ</option>
+  </select>
+
+  <br><br>
+
+  <button id="showMatrixBtn">提出状況を表示</button>
+
+  <table>
+    <thead id="submissionMatrixHeader"></thead>
+    <tbody id="submissionMatrixBody">
+      <tr>
+        <td colspan="2">提出状況を表示するには「提出状況を表示」ボタンを押してください。</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 <h2>ワードクラウド</h2>
 
 <canvas
@@ -319,6 +374,8 @@ document.getElementById("csvBtn").addEventListener("click", () => {
 document.getElementById("wordCloudBtn")
 
 .addEventListener("click", generateWordCloud);
+
+document.getElementById("showMatrixBtn").addEventListener("click", loadSubmissionMatrix);
   
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -447,7 +504,7 @@ row.innerHTML = `
 row.addEventListener("click", () => {
 
   document
-    .querySelectorAll("tbody tr")
+    .querySelectorAll("#reflectionTableBody tr")
     .forEach(r => r.classList.remove("selected-row"));
 
   row.classList.add("selected-row");
@@ -573,6 +630,123 @@ async function loadStudentRoster() {
     rosterBody.innerHTML = `
       <tr>
         <td colspan="7">生徒名簿の読み込み中にエラーが発生しました。</td>
+      </tr>
+    `;
+  }
+}
+
+async function loadSubmissionMatrix() {
+  const header = document.getElementById("submissionMatrixHeader");
+  const body = document.getElementById("submissionMatrixBody");
+
+  header.innerHTML = "<tr><th>番号</th><th>氏名</th></tr>";
+  body.innerHTML = `
+    <tr>
+      <td colspan="2">読み込み中...</td>
+    </tr>
+  `;
+
+  try {
+    const studentsSnapshot = await getDocs(collection(db, "students"));
+    const reflectionsSnapshot = await getDocs(collection(db, "reflections"));
+
+    const selectedYear = document.getElementById("matrixSchoolYear").value;
+    const selectedGrade = document.getElementById("matrixGrade").value;
+    const selectedClass = document.getElementById("matrixClass").value;
+    const selectedLesson = document.getElementById("matrixLesson").value;
+
+    const normalizeEmail = (value) =>
+      String(value || "").trim().toLowerCase();
+
+    const normalizeDate = (date) => {
+      if (!(date instanceof Date)) return "";
+      return date.toLocaleDateString("sv-SE");
+    };
+
+    const filteredStudents = [];
+    studentsSnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (selectedYear !== "all" && data.schoolYear !== selectedYear) return;
+      if (selectedGrade !== "all" && data.grade !== selectedGrade) return;
+      if (selectedClass !== "all" && data.className !== selectedClass) return;
+      filteredStudents.push(data);
+    });
+
+    const studentEmails = new Set(
+      filteredStudents
+        .map((student) => normalizeEmail(student.email))
+        .filter((email) => email !== "")
+    );
+
+    const filteredReflections = [];
+    reflectionsSnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (selectedLesson !== "all" && data.lessonName !== selectedLesson) return;
+      const emailKey = normalizeEmail(data.userEmail);
+      if (!studentEmails.has(emailKey)) return;
+      if (!data.createdAt || !data.createdAt.toDate) return;
+      filteredReflections.push(data);
+    });
+
+    const dateSet = new Set();
+    filteredReflections.forEach((data) => {
+      const submittedDate = normalizeDate(data.createdAt.toDate());
+      if (submittedDate) dateSet.add(submittedDate);
+    });
+
+    const dates = Array.from(dateSet).sort();
+    header.innerHTML = `
+      <tr>
+        <th>番号</th>
+        <th>氏名</th>
+        ${dates.map((date) => `<th>${date}</th>`).join("")}
+      </tr>
+    `;
+
+    if (filteredStudents.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="${2 + dates.length}">該当する生徒が見つかりません。</td>
+        </tr>
+      `;
+      return;
+    }
+
+    if (dates.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="${2 + dates.length}">該当する提出がありません。</td>
+        </tr>
+      `;
+      return;
+    }
+
+    body.innerHTML = "";
+
+    filteredStudents.forEach((student) => {
+      const emailKey = normalizeEmail(student.email);
+      const submittedDates = new Set(
+        filteredReflections
+          .filter((reflection) => normalizeEmail(reflection.userEmail) === emailKey)
+          .map((reflection) => normalizeDate(reflection.createdAt.toDate()))
+      );
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${student.studentNumber || ""}</td>
+        <td>${student.name || ""}</td>
+        ${dates
+          .map((date) => `<td>${submittedDates.has(date) ? "●" : ""}</td>`)
+          .join("")}
+      `;
+      body.appendChild(row);
+    });
+  } catch (error) {
+    console.error("loadSubmissionMatrix error:", error);
+    header.innerHTML = "<tr><th>番号</th><th>氏名</th></tr>";
+    body.innerHTML = `
+      <tr>
+        <td colspan="2">提出状況の読み込み中にエラーが発生しました。</td>
       </tr>
     `;
   }
