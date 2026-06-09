@@ -42,6 +42,9 @@ button:hover {
 <div class="card">
   <h3>🔍 絞り込み</h3>
 
+  <p>生徒名</p>
+<input type="text" id="filterName" placeholder="例：田中">
+  
   <p>日付</p>
 <input type="date" id="filterDate">
 
@@ -140,6 +143,8 @@ document.getElementById("filterBtn").addEventListener("click", () => {
 document.getElementById("resetFilterBtn").addEventListener("click", () => {
 
   document.getElementById("filterDate").value = "";
+
+  document.getElementById("filterName").value = "";
 
   document.getElementById("filterGrade").value = "all";
 
@@ -265,6 +270,8 @@ const filterGrade = document.getElementById("filterGrade").value;
 const filterClass = document.getElementById("filterClass").value;
 const filterLesson = document.getElementById("filterLesson").value;
 
+const filterName = document.getElementById("filterName").value.trim();
+    
 const filterDate = document.getElementById("filterDate").value;
     if (filterDate !== "") {
   const submittedDate =
@@ -272,6 +279,8 @@ const filterDate = document.getElementById("filterDate").value;
 
   if (submittedDate !== filterDate) return;
 }
+
+if (filterName !== "" && !(data.userName || "").includes(filterName)) return;
     
 if (filterGrade !== "all" && data.grade !== filterGrade) return;
 if (filterClass !== "all" && data.className !== filterClass) return;
