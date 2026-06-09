@@ -186,14 +186,43 @@ document.getElementById("emailLoginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  await signInWithEmailAndPassword(auth, email, password);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "auth/invalid-credential") {
+      alert("ログインできませんでした。メールアドレスまたはパスワードを確認してください。初めて使う場合は「初回登録」を押してください。");
+    } else if (error.code === "auth/user-not-found") {
+      alert("このメールアドレスはまだ登録されていません。「初回登録」を押してください。");
+    } else if (error.code === "auth/wrong-password") {
+      alert("パスワードが違います。もう一度確認してください。");
+    } else {
+      alert("ログイン中にエラーが発生しました。もう一度試してください。");
+    }
+  }
 });
 
 document.getElementById("signupBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  await createUserWithEmailAndPassword(auth, email, password);
+  try {
+    await createUserWithEmailAndPassword(auth, email, password);
+    alert("初回登録が完了しました。");
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "auth/email-already-in-use") {
+      alert("このメールアドレスはすでに登録されています。「ログイン」を押してください。");
+    } else if (error.code === "auth/weak-password") {
+      alert("パスワードは6文字以上にしてください。");
+    } else if (error.code === "auth/invalid-email") {
+      alert("メールアドレスの形式を確認してください。");
+    } else {
+      alert("登録中にエラーが発生しました。もう一度試してください。");
+    }
+  }
 });
   
 document.getElementById("logoutBtn").addEventListener("click", async () => {
