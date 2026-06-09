@@ -31,6 +31,22 @@ button {
 button:hover {
   background-color: skyblue;
 }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 25px;
+}
+
+th, td {
+  border: 1px solid lightgray;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background-color: #f0f4ff;
+}  
 </style>
 
 <h1>👨‍🏫 Teacher Dashboard</h1>
@@ -89,6 +105,21 @@ button:hover {
   <button id="csvBtn">CSVダウンロード</button>
 </div>
 <h2>提出された振り返り</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>日時</th>
+      <th>氏名</th>
+      <th>学年</th>
+      <th>クラス</th>
+      <th>授業名</th>
+      <th>自己評価</th>
+    </tr>
+  </thead>
+  <tbody id="reflectionTableBody">
+  </tbody>
+</table>
 
 <div id="reflectionList">
   読み込み中...
@@ -252,7 +283,10 @@ onAuthStateChanged(auth, (user) => {
 
 async function loadReflections() {
   const reflectionList = document.getElementById("reflectionList");
-  reflectionList.innerHTML = "読み込み中...";
+const reflectionTableBody = document.getElementById("reflectionTableBody");
+
+reflectionList.innerHTML = "読み込み中...";
+reflectionTableBody.innerHTML = "";
 
   const q = query(
     collection(db, "reflections"),
@@ -287,6 +321,18 @@ if (filterClass !== "all" && data.className !== filterClass) return;
 if (filterLesson !== "all" && data.lessonName !== filterLesson) return;
 
 currentData.push(data);
+const row = document.createElement("tr");
+
+row.innerHTML = `
+  <td>${data.createdAt ? data.createdAt.toDate().toLocaleString() : ""}</td>
+  <td>${data.userName || ""}</td>
+  <td>${data.grade || ""}</td>
+  <td>${data.className || ""}</td>
+  <td>${data.lessonName || ""}</td>
+  <td>${data.evaluation || ""}</td>
+`;
+
+reflectionTableBody.appendChild(row);    
     
     const card = document.createElement("div");
     card.className = "card";
