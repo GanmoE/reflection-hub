@@ -31,6 +31,11 @@ button {
 button:hover {
   background-color: skyblue;
 }
+
+.selected-row {
+  background-color: #dff0ff;
+}
+  
 table {
   width: 100%;
   border-collapse: collapse;
@@ -96,6 +101,20 @@ th {
     <option>論理・表現Ⅲ</option>
   </select>
 
+<p>並び替え</p>
+
+<select id="sortOrder">
+
+  <option value="dateDesc">新しい順</option>
+
+  <option value="dateAsc">古い順</option>
+
+  <option value="nameAsc">氏名順</option>
+
+  <option value="evaluationDesc">評価高い順</option>
+
+</select>
+  
   <br><br>
 
   <button id="filterBtn">絞り込む</button>
@@ -299,10 +318,43 @@ reflectionTableBody.innerHTML = "";
 
   const querySnapshot = await getDocs(q);
 
-  reflectionList.innerHTML = "";
-  currentData = [];
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
+reflectionList.innerHTML = "";
+currentData = [];
+
+let dataArray = [];
+
+querySnapshot.forEach((doc) => {
+  dataArray.push(doc.data());
+});
+
+const sortOrder =
+  document.getElementById("sortOrder").value;
+
+if (sortOrder === "dateAsc") {
+  dataArray.sort((a, b) =>
+    a.createdAt.seconds - b.createdAt.seconds
+  );
+}
+
+if (sortOrder === "dateDesc") {
+  dataArray.sort((a, b) =>
+    b.createdAt.seconds - a.createdAt.seconds
+  );
+}
+
+if (sortOrder === "nameAsc") {
+  dataArray.sort((a, b) =>
+    (a.userName || "").localeCompare(b.userName || "", "ja")
+  );
+}
+
+if (sortOrder === "evaluationDesc") {
+  dataArray.sort((a, b) =>
+    parseInt(b.evaluation) - parseInt(a.evaluation)
+  );
+}
+
+dataArray.forEach((data) => {
 
 const filterGrade = document.getElementById("filterGrade").value;
 const filterClass = document.getElementById("filterClass").value;
@@ -337,7 +389,15 @@ row.innerHTML = `
 `;
 
 row.addEventListener("click", () => {
+
+  document
+    .querySelectorAll("tbody tr")
+    .forEach(r => r.classList.remove("selected-row"));
+
+  row.classList.add("selected-row");
+
   showDetail(data);
+
 });
     
 reflectionTableBody.appendChild(row);    
