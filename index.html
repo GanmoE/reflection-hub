@@ -206,8 +206,8 @@ onAuthStateChanged(auth, (user) => {
   currentUser = user;
 
   if (user) {
-    document.getElementById("userInfo").innerHTML =
-      `${user.displayName} さんでログイン中`;
+document.getElementById("userInfo").innerHTML =
+  `${user.displayName || user.email} さんでログイン中`;
   } else {
     document.getElementById("userInfo").innerHTML =
       "ログインしていません";
