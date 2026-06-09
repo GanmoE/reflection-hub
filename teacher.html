@@ -121,8 +121,10 @@ th {
   </tbody>
 </table>
 
-<div id="reflectionList">
-  読み込み中...
+<h2>詳細</h2>
+
+<div id="reflectionDetail" class="card">
+  表の行をクリックすると詳細が表示されます。
 </div>
 
 <script type="module">
@@ -332,6 +334,10 @@ row.innerHTML = `
   <td>${data.evaluation || ""}</td>
 `;
 
+row.addEventListener("click", () => {
+  showDetail(data);
+});
+    
 reflectionTableBody.appendChild(row);    
     
     const card = document.createElement("div");
@@ -367,4 +373,36 @@ reflectionTableBody.appendChild(row);
     reflectionList.appendChild(card);
   });
 }
+
+function showDetail(data) {
+  const detail = document.getElementById("reflectionDetail");
+
+  detail.innerHTML = `
+    <div class="meta">
+      ${data.createdAt ? data.createdAt.toDate().toLocaleString() : ""}
+    </div>
+
+    <h3>${data.userName || "名前なし"}</h3>
+    <div class="meta">${data.userEmail || ""}</div>
+
+    <div class="meta">
+      ${data.grade || ""}　
+      ${data.className || ""}　
+      ${data.lessonName || ""}
+    </div>
+
+    <h4>① Today's Reflection</h4>
+    <p>${data.reflection || ""}</p>
+
+    <h4>② Questions & Expressions</h4>
+    <p>${data.question || ""}</p>
+
+    <h4>③ Message to Teacher</h4>
+    <p>${data.message || ""}</p>
+
+    <h4>⭐ Self Evaluation</h4>
+    <p>${data.evaluation || ""}</p>
+  `;
+}
+  
 </script>
