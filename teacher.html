@@ -122,7 +122,19 @@ th {
   <button id="resetFilterBtn">リセット</button>
   &nbsp;
   <button id="csvBtn">CSVダウンロード</button>
+  &nbsp;
+<button id="wordCloudBtn">ワードクラウド生成</button>
 </div>
+
+<h2>ワードクラウド</h2>
+
+<canvas
+  id="wordCloudCanvas"
+  width="900"
+  height="400"
+  style="border:1px solid lightgray;"
+></canvas>
+
 <h2>提出された振り返り</h2>
 
 <table>
@@ -147,6 +159,8 @@ th {
 </div>
 
 <div id="reflectionList" style="display:none;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
@@ -181,6 +195,13 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 let currentData = [];
+
+const STOP_WORDS = [
+  "the","a","an","to","of","and","is","are",
+  "i","you","he","she","it","we","they",
+  "was","were","be","have","has","had",
+  "in","on","at","for","with","this","that"
+];  
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   await signInWithPopup(auth, provider);
@@ -264,7 +285,12 @@ document.getElementById("csvBtn").addEventListener("click", () => {
   link.click();
 
   URL.revokeObjectURL(url);
-});  
+});
+
+document.getElementById("wordCloudBtn")
+
+.addEventListener("click", generateWordCloud);
+  
 onAuthStateChanged(auth, (user) => {
   if (user) {
 
@@ -466,5 +492,85 @@ function showDetail(data) {
     <p>${data.evaluation || ""}</p>
   `;
 }
-  
+
+function generateWordCloud() {
+  const canvas =
+
+    document.getElementById("wordCloudCanvas");
+
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let text = "";
+
+  currentData.forEach(data => {
+
+    text += " " + (data.reflection || "");
+
+    text += " " + (data.question || "");
+
+    text += " " + (data.message || "");
+
+  });
+
+  const words =
+
+    text
+
+      .toLowerCase()
+
+      .replace(/[.,!?()]/g, "")
+
+      .split(/\s+/);
+
+  const counts = {};
+
+  words.forEach(word => {
+
+    if (
+
+      word.length < 3 ||
+
+      STOP_WORDS.includes(word)
+
+    ) return;
+
+    counts[word] = (counts[word] || 0) + 1;
+
+  });
+
+  const sortedWords =
+
+    Object.entries(counts)
+
+      .sort((a, b) => b[1] - a[1])
+
+      .slice(0, 50);
+
+  sortedWords.forEach(([word, count]) => {
+
+    const size =
+
+      Math.min(50, 14 + count * 4);
+
+    const x =
+
+      Math.random() * (canvas.width - 100);
+
+    const y =
+
+      Math.random() * (canvas.height - 30);
+
+    ctx.font = `${size}px Arial`;
+
+    ctx.fillStyle =
+
+      `hsl(${Math.random()*360},70%,45%)`;
+
+    ctx.fillText(word, x, y);
+
+  });
+
+}  
 </script>
