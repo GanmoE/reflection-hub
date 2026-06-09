@@ -126,6 +126,29 @@ th {
 <button id="wordCloudBtn">ワードクラウド生成</button>
 </div>
 
+<div class="card">
+  <h2>👥 生徒名簿</h2>
+  <p>登録済みの生徒マスターを表示します。</p>
+  <table>
+    <thead>
+      <tr>
+        <th>年度</th>
+        <th>学年</th>
+        <th>クラス</th>
+        <th>番号</th>
+        <th>氏名</th>
+        <th>メール</th>
+        <th>状態</th>
+      </tr>
+    </thead>
+    <tbody id="studentRosterBody">
+      <tr>
+        <td colspan="7">読み込み中...</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 <h2>ワードクラウド</h2>
 
 <canvas
@@ -326,6 +349,7 @@ onAuthStateChanged(auth, (user) => {
 }
 
   loadReflections();
+  loadStudentRoster();
 
 } else {
     document.getElementById("userInfo").innerHTML =
@@ -497,6 +521,61 @@ function showDetail(data) {
     <h4>⭐ Self Evaluation</h4>
     <p>${data.evaluation || ""}</p>
   `;
+}
+
+async function loadStudentRoster() {
+  const rosterBody = document.getElementById("studentRosterBody");
+  rosterBody.innerHTML = `
+    <tr>
+      <td colspan="7">読み込み中...</td>
+    </tr>
+  `;
+
+  try {
+    const querySnapshot = await getDocs(collection(db, "students"));
+    const students = [];
+
+    querySnapshot.forEach((doc) => {
+      students.push(doc.data());
+    });
+
+    if (students.length === 0) {
+      rosterBody.innerHTML = `
+        <tr>
+          <td colspan="7">登録された生徒がありません。</td>
+        </tr>
+      `;
+      return;
+    }
+
+    students.sort((a, b) => {
+      const aKey = `${a.schoolYear || ""}_${a.gradeCode || ""}_${a.classCode || ""}_${a.studentNumber || ""}`;
+      const bKey = `${b.schoolYear || ""}_${b.gradeCode || ""}_${b.classCode || ""}_${b.studentNumber || ""}`;
+      return aKey.localeCompare(bKey, undefined, { numeric: true });
+    });
+
+    rosterBody.innerHTML = "";
+    students.forEach((student) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${student.schoolYear || ""}</td>
+        <td>${student.grade || ""}</td>
+        <td>${student.className || ""}</td>
+        <td>${student.studentNumber || ""}</td>
+        <td>${student.name || ""}</td>
+        <td>${student.email || ""}</td>
+        <td>${student.status || ""}</td>
+      `;
+      rosterBody.appendChild(row);
+    });
+  } catch (error) {
+    console.error(error);
+    rosterBody.innerHTML = `
+      <tr>
+        <td colspan="7">生徒名簿の読み込み中にエラーが発生しました。</td>
+      </tr>
+    `;
+  }
 }
 
 function generateWordCloud() {
