@@ -193,6 +193,11 @@ th {
   <br><br>
 
   <button id="showMatrixBtn">提出状況を表示</button>
+  &nbsp;
+  <p>日付（提出日を選択）</p>
+  <input type="date" id="matrixDate">
+  &nbsp;
+  <button id="showMissingBtn">未提出者を表示</button>
 
   <table>
     <thead id="submissionMatrixHeader"></thead>
@@ -206,6 +211,18 @@ th {
   <div id="submissionMatrixDetail" class="card">
     <h3>提出詳細</h3>
     <p>提出セルをクリックすると詳細が表示されます。</p>
+  </div>
+
+  <div id="missingSection" class="card">
+    <h3>未提出者一覧</h3>
+    <div id="missingStats">未提出者を表示するには日付を選択してください。</div>
+    <table>
+      <thead>
+        <tr><th>番号</th><th>氏名</th></tr>
+      </thead>
+      <tbody id="missingBody">
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -381,6 +398,7 @@ document.getElementById("wordCloudBtn")
 .addEventListener("click", generateWordCloud);
 
 document.getElementById("showMatrixBtn").addEventListener("click", loadSubmissionMatrix);
+document.getElementById("showMissingBtn").addEventListener("click", showMissingStudents);
   
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -798,6 +816,90 @@ function showSubmissionDetail(reflection, student, date) {
     <h4>⭐ Self Evaluation</h4>
     <p>${reflection.evaluation || ""}</p>
   `;
+}
+
+function toISODateString(date) {
+  try {
+    return date.toISOString().slice(0,10);
+  } catch (e) {
+    return "";
+  }
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+async function showMissingStudents() {
+  const stats = document.getElementById('missingStats');
+  const body = document.getElementById('missingBody');
+  stats.innerHTML = '読み込み中...';
+  body.innerHTML = '';
+
+  try {
+    const studentsSnapshot = await getDocs(collection(db, 'students'));
+    const reflectionsSnapshot = await getDocs(collection(db, 'reflections'));
+
+    const selectedYear = document.getElementById('matrixSchoolYear').value;
+    const selectedGrade = document.getElementById('matrixGrade').value;
+    const selectedClass = document.getElementById('matrixClass').value;
+    const selectedLesson = document.getElementById('matrixLesson').value;
+    const selectedDate = document.getElementById('matrixDate').value; // yyyy-mm-dd
+
+    if (!selectedDate) {
+      stats.innerHTML = '日付を選択してください。';
+      return;
+    }
+
+    const filteredStudents = [];
+    studentsSnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (selectedYear !== 'all' && data.schoolYear !== selectedYear) return;
+      if (selectedGrade !== 'all' && data.grade !== selectedGrade) return;
+      if (selectedClass !== 'all' && data.className !== selectedClass) return;
+      filteredStudents.push(data);
+    });
+
+    const studentEmailSet = new Set(
+      filteredStudents.map(s => normalizeEmail(s.email)).filter(e => e !== '')
+    );
+
+    const submittedEmails = new Set();
+    reflectionsSnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (selectedLesson !== 'all' && data.lessonName !== selectedLesson) return;
+      if (!data.createdAt || !data.createdAt.toDate) return;
+      const createdISO = toISODateString(data.createdAt.toDate());
+      if (createdISO !== selectedDate) return;
+      const emailKey = normalizeEmail(data.userEmail);
+      if (!studentEmailSet.has(emailKey)) return;
+      submittedEmails.add(emailKey);
+    });
+
+    const missing = filteredStudents.filter(s => !submittedEmails.has(normalizeEmail(s.email)));
+
+    const total = filteredStudents.length;
+    const submitted = submittedEmails.size;
+    const missingCount = missing.length;
+    const rate = total === 0 ? 0 : Math.round((submitted / total) * 100);
+
+    stats.innerHTML = `合計: ${total}人 / 提出: ${submitted}人 / 未提出: ${missingCount}人 / 提出率: ${rate}%`;
+
+    if (missing.length === 0) {
+      body.innerHTML = `<tr><td colspan="2">未提出者はいません。</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = '';
+    missing.forEach(s => {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${s.studentNumber || ''}</td><td>${s.name || ''}</td>`;
+      body.appendChild(row);
+    });
+  } catch (error) {
+    console.error('showMissingStudents error:', error);
+    stats.innerHTML = '未提出者の読み込み中にエラーが発生しました。';
+  }
 }
 
 function generateWordCloud() {
