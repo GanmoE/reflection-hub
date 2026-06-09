@@ -202,6 +202,11 @@ th {
       </tr>
     </tbody>
   </table>
+
+  <div id="submissionMatrixDetail" class="card">
+    <h3>提出詳細</h3>
+    <p>提出セルをクリックすると詳細が表示されます。</p>
+  </div>
 </div>
 
 <h2>ワードクラウド</h2>
@@ -638,12 +643,17 @@ async function loadStudentRoster() {
 async function loadSubmissionMatrix() {
   const header = document.getElementById("submissionMatrixHeader");
   const body = document.getElementById("submissionMatrixBody");
+  const detail = document.getElementById("submissionMatrixDetail");
 
   header.innerHTML = "<tr><th>番号</th><th>氏名</th></tr>";
   body.innerHTML = `
     <tr>
       <td colspan="2">読み込み中...</td>
     </tr>
+  `;
+  detail.innerHTML = `
+    <h3>提出詳細</h3>
+    <p>提出セルをクリックすると詳細が表示されます。</p>
   `;
 
   try {
@@ -678,20 +688,30 @@ async function loadSubmissionMatrix() {
         .filter((email) => email !== "")
     );
 
-    const filteredReflections = [];
+    const reflectionMap = new Map();
     reflectionsSnapshot.forEach((doc) => {
       const data = doc.data();
       if (selectedLesson !== "all" && data.lessonName !== selectedLesson) return;
       const emailKey = normalizeEmail(data.userEmail);
       if (!studentEmails.has(emailKey)) return;
       if (!data.createdAt || !data.createdAt.toDate) return;
-      filteredReflections.push(data);
+      const dateKey = normalizeDate(data.createdAt.toDate());
+      if (!dateKey) return;
+
+      const mapKey = `${emailKey}|${dateKey}`;
+      const existing = reflectionMap.get(mapKey);
+      if (
+        !existing ||
+        (existing.createdAt && data.createdAt && data.createdAt.toMillis() > existing.createdAt.toMillis())
+      ) {
+        reflectionMap.set(mapKey, data);
+      }
     });
 
     const dateSet = new Set();
-    filteredReflections.forEach((data) => {
-      const submittedDate = normalizeDate(data.createdAt.toDate());
-      if (submittedDate) dateSet.add(submittedDate);
+    reflectionMap.forEach((_, mapKey) => {
+      const parts = mapKey.split("|");
+      if (parts.length === 2) dateSet.add(parts[1]);
     });
 
     const dates = Array.from(dateSet).sort();
@@ -725,20 +745,30 @@ async function loadSubmissionMatrix() {
 
     filteredStudents.forEach((student) => {
       const emailKey = normalizeEmail(student.email);
-      const submittedDates = new Set(
-        filteredReflections
-          .filter((reflection) => normalizeEmail(reflection.userEmail) === emailKey)
-          .map((reflection) => normalizeDate(reflection.createdAt.toDate()))
-      );
-
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${student.studentNumber || ""}</td>
         <td>${student.name || ""}</td>
-        ${dates
-          .map((date) => `<td>${submittedDates.has(date) ? "●" : ""}</td>`)
-          .join("")}
       `;
+
+      dates.forEach((date) => {
+        const mapKey = `${emailKey}|${date}`;
+        const reflection = reflectionMap.get(mapKey);
+        const cell = document.createElement("td");
+
+        if (reflection) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = "●";
+          button.addEventListener("click", () => {
+            showSubmissionDetail(reflection, student, date);
+          });
+          cell.appendChild(button);
+        }
+
+        row.appendChild(cell);
+      });
+
       body.appendChild(row);
     });
   } catch (error) {
@@ -750,6 +780,24 @@ async function loadSubmissionMatrix() {
       </tr>
     `;
   }
+}
+
+function showSubmissionDetail(reflection, student, date) {
+  const detail = document.getElementById("submissionMatrixDetail");
+  detail.innerHTML = `
+    <h3>提出詳細</h3>
+    <div class="meta">日付: ${date}</div>
+    <div class="meta">生徒: ${student.name || ""}</div>
+    <div class="meta">授業: ${reflection.lessonName || ""}</div>
+    <h4>① Today's Reflection</h4>
+    <p>${reflection.reflection || ""}</p>
+    <h4>② Questions & Expressions</h4>
+    <p>${reflection.question || ""}</p>
+    <h4>③ Message to Teacher</h4>
+    <p>${reflection.message || ""}</p>
+    <h4>⭐ Self Evaluation</h4>
+    <p>${reflection.evaluation || ""}</p>
+  `;
 }
 
 function generateWordCloud() {
