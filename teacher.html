@@ -202,13 +202,12 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 let currentData = [];
-
 const STOP_WORDS = [
-  "the","a","an","to","of","and","is","are",
-  "i","you","he","she","it","we","they",
-  "was","were","be","have","has","had",
-  "in","on","at","for","with","this","that"
-];  
+"の","に","は","を","が","で","と","も","へ","や",
+"です","ます","した","する","いる","ある",
+"こと","もの","よう","ため",
+"the","a","an","to","of","and","is","are"
+];
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   await signInWithPopup(auth, provider);
@@ -529,7 +528,7 @@ function generateWordCloud() {
 
       .replace(/[.,!?()]/g, "")
 
-      .split(/\s+/);
+      .split(/[\s、。！？,.!?]+/);
 
   const counts = {};
 
