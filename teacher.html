@@ -82,7 +82,8 @@ button:hover {
   <button id="filterBtn">絞り込む</button>
   &nbsp;
   <button id="resetFilterBtn">リセット</button>
-  
+  &nbsp;
+  <button id="csvBtn">CSVダウンロード</button>
 </div>
 <h2>提出された振り返り</h2>
 
@@ -122,6 +123,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+let currentData = [];
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   await signInWithPopup(auth, provider);
@@ -148,7 +150,62 @@ document.getElementById("resetFilterBtn").addEventListener("click", () => {
   loadReflections();
 
 });
-  
+document.getElementById("csvBtn").addEventListener("click", () => {
+
+  if (currentData.length === 0) {
+    alert("出力するデータがありません");
+    return;
+  }
+
+  const headers = [
+    "日時",
+    "氏名",
+    "メール",
+    "学年",
+    "クラス",
+    "授業名",
+    "今日の振り返り",
+    "疑問・言いたかった表現",
+    "先生へのメッセージ",
+    "自己評価"
+  ];
+
+  const rows = currentData.map(data => [
+    data.createdAt ? data.createdAt.toDate().toLocaleString() : "",
+    data.userName || "",
+    data.userEmail || "",
+    data.grade || "",
+    data.className || "",
+    data.lessonName || "",
+    data.reflection || "",
+    data.question || "",
+    data.message || "",
+    data.evaluation || ""
+  ]);
+
+  const csvContent = [
+    headers,
+    ...rows
+  ].map(row =>
+    row.map(value =>
+      `"${String(value).replace(/"/g, '""')}"`
+    ).join(",")
+  ).join("\n");
+
+  const bom = "\uFEFF";
+  const blob = new Blob([bom + csvContent], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "reflection_data.csv";
+  link.click();
+
+  URL.revokeObjectURL(url);
+});  
 onAuthStateChanged(auth, (user) => {
   if (user) {
 
@@ -200,7 +257,7 @@ async function loadReflections() {
   const querySnapshot = await getDocs(q);
 
   reflectionList.innerHTML = "";
-
+  currentData = [];
   querySnapshot.forEach((doc) => {
     const data = doc.data();
 
@@ -219,6 +276,8 @@ const filterDate = document.getElementById("filterDate").value;
 if (filterGrade !== "all" && data.grade !== filterGrade) return;
 if (filterClass !== "all" && data.className !== filterClass) return;
 if (filterLesson !== "all" && data.lessonName !== filterLesson) return;
+
+currentData.push(data);
     
     const card = document.createElement("div");
     card.className = "card";
